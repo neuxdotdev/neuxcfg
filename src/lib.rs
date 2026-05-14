@@ -1,9 +1,9 @@
-pub mod config;
 mod error;
-use config::ProjectConfig;
+pub mod types;
 pub use error::NeuxcfgError;
 use std::io::{ErrorKind, Write};
 use std::path::{Path, PathBuf};
+pub use types::{GlobalConfig, ProjectConfig};
 pub struct Neuxcfg {
     root: PathBuf,
 }
@@ -31,9 +31,9 @@ impl Neuxcfg {
             .open(&config_path)
         {
             Ok(mut file) => {
-                let version = env!("CARGO_PKG_VERSION");
-                let content = format!("version = \"{}\"\n", version);
-                file.write_all(content.as_bytes())?;
+                let global_config = GlobalConfig::from_cargo();
+                let toml_str = toml::to_string_pretty(&global_config)?;
+                file.write_all(toml_str.as_bytes())?;
                 #[cfg(unix)]
                 {
                     use std::os::unix::fs::PermissionsExt;
