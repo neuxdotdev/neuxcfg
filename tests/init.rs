@@ -1,16 +1,27 @@
 // tests/init.rs
 //
 // Integration tests for the initialisation logic of the `neuxcfg` library.
-// These tests use temporary directories, leaving the real configuration
-// untouched.
+//
+// These tests cover:
+//   - Creation of the root directory and global config file
+//   - Idempotency
+//   - Custom root paths via `with_root()`
+//   - Behaviour when directory or file already exist
+//   - Preservation of existing file contents
+//   - Unix permission enforcement (strict 0700/0600)
+//   - Permission repair after external modification
+//   - Graceful failure when the root path is a file
+//   - Initialisation with missing parent directories
+//   - Global config content validation
+//   - Fallback defaults in `GlobalConfig::from_cargo()`
 
 use neuxcfg::Neuxcfg;
 use neuxcfg::types::GlobalConfig;
 use std::fs;
 
 // ---------------------------------------------------------------------------
-// 1. Fresh initialisation creates the expected directory and a valid
-//    TOML configuration file containing the library's metadata.
+// 1. Fresh initialisation creates the expected directory and a valid TOML
+//    configuration file containing the library's metadata.
 // ---------------------------------------------------------------------------
 #[test]
 fn test_init_creates_structure() {
@@ -166,4 +177,66 @@ fn test_init_fixes_permissions() {
         .permissions()
         .mode();
     assert_eq!(file_perm & 0o777, 0o600, "config file should be 0600 again");
+}
+
+// ---------------------------------------------------------------------------
+// 8. If the root path points to an existing file, init() must fail with
+//    an I/O error because `create_dir_all` cannot replace a file.
+// ---------------------------------------------------------------------------
+#[test]
+fn test_init_fails_when_root_is_a_file() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let root = tmp.path().join("not_a_dir");
+    // Create a file at the path intended for the root.
+    fs::write(&root, "blocking file").unwrap();
+
+    let cfg = Neuxcfg::with_root(root);
+    let err = cfg.init().unwrap_err();
+    // Expect an I/O error (message will vary by OS, so we just check variant).
+    assert!(matches!(err, neuxcfg::NeuxcfgError::Io(_)));
+}
+
+// ---------------------------------------------------------------------------
+// 9. init() creates missing parent directories automatically
+//    (via `create_dir_all`).
+// ---------------------------------------------------------------------------
+#[test]
+fn test_init_creates_parent_directories() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let root = tmp.path().join("a").join("b").join("neuxcfg");
+    let cfg = Neuxcfg::with_root(root.clone());
+
+    cfg.init().unwrap();
+    assert!(root.is_dir());
+    assert!(root.join("config.cfg").exists());
+}
+
+// ---------------------------------------------------------------------------
+// 10. GlobalConfig::from_cargo() falls back to defaults when environment
+//     variables are missing. We test a few known fields.
+// ---------------------------------------------------------------------------
+#[test]
+fn test_global_config_defaults() {
+    // Clear a few Cargo env vars to trigger defaults.
+    temp_env::with_var("CARGO_PKG_NAME", None::<&str>, || {
+        temp_env::with_var("CARGO_PKG_AUTHORS", None::<&str>, || {
+            let config = GlobalConfig::from_cargo();
+            assert_eq!(config.name, "neuxcfg"); // default
+            assert_eq!(config.authors, vec!["neuxdotdev <neuxdev1@gmail.com>"]); // default split
+        });
+    });
+}
+
+// ---------------------------------------------------------------------------
+// 11. Root path given by with_root() is used even when it doesn't exist yet.
+// ---------------------------------------------------------------------------
+#[test]
+fn test_root_method_returns_correct_path() {
+    let tmp = tempfile::TempDir::new().unwrap();
+    let root = tmp.path().join("my_root");
+    let cfg = Neuxcfg::with_root(root.clone());
+    assert_eq!(cfg.root(), &*root);
+    // even before init
+    cfg.init().unwrap();
+    assert_eq!(cfg.root(), &*root);
 }

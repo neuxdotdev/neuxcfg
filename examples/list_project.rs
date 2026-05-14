@@ -1,24 +1,47 @@
-// examples/list_project.rs
-//
-// Demonstrates how to discover all managed projects using the
-// `list_projects()` method and inspect their configuration.
-//
-// Run with:
-// ```bash
-// cargo run --example list_project
-// ```
+//! # neuxcfg Project Listing Demo
+//!
+//! Demonstrates how to retrieve all projects managed by neuxcfg and inspect
+//! their individual configurations. The `list_projects()` method returns
+//! the names of all valid subdirectories in the root; this example iterates
+//! over them and prints key details.
+//!
+//! ## Running
+//!
+//! ```bash
+//! cargo run --example list_project
+//! ```
+//!
+//! ## Prerequisites
+//!
+//! This example expects at least one project to already exist. If the root
+//! contains no projects, a message will be displayed suggesting to run the
+//! `project` example first.
+//!
+//! ## Output
+//!
+//! For each project, the example prints:
+//! - The project name
+//! - The path stored inside the configuration
+//! - Any custom `extra` fields that were previously added
+//!
+//! The final line reminds you that `list_projects()` can be used in your own
+//! code to dynamically obtain the list of managed projects.
 
 use neuxcfg::Neuxcfg;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Use the default system configuration directory.
+    // ------------------------------------------------------------------
+    // 1. Initialise neuxcfg (creates root if needed)
+    // ------------------------------------------------------------------
     let cfg = Neuxcfg::new()?;
     cfg.init()?;
 
     println!("=== neuxcfg – Project Listing Demo ===\n");
     println!("Root: {:?}\n", cfg.root());
 
-    // Retrieve all project names currently stored.
+    // ------------------------------------------------------------------
+    // 2. Obtain the list of project names
+    // ------------------------------------------------------------------
     let projects = cfg.list_projects()?;
 
     if projects.is_empty() {
@@ -28,10 +51,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Found {} project(s):\n", projects.len());
 
+    // ------------------------------------------------------------------
+    // 3. Iterate and display each project's configuration
+    // ------------------------------------------------------------------
     for name in &projects {
-        println!("  • {name}");
+        println!("  * {name}");
 
-        // Read and display the project's configuration.
         match cfg.get_project_config(name) {
             Ok(config) => {
                 println!("    name : {}", config.project.name);
