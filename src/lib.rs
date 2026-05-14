@@ -241,18 +241,18 @@ impl Neuxcfg {
             .create_new(true) // fails with AlreadyExists if the file is present
             .open(&config_path)
         {
-        Ok(mut file) => {
-            // New file created – write the current library version into it.
-            let version = env!("CARGO_PKG_VERSION");
-            let content = format!("version = \"{}\"\n", version);
-            std::io::Write::write_all(&mut file, content.as_bytes())?;
-            // Harden permissions after writing (Unix only).
-            #[cfg(unix)]
-            {
-                use std::os::unix::fs::PermissionsExt;
-                std::fs::set_permissions(&config_path, std::fs::Permissions::from_mode(0o600))?;
+            Ok(mut file) => {
+                // New file created – write the current library version into it.
+                let version = env!("CARGO_PKG_VERSION");
+                let content = format!("version = \"{}\"\n", version);
+                std::io::Write::write_all(&mut file, content.as_bytes())?;
+                // Harden permissions after writing (Unix only).
+                #[cfg(unix)]
+                {
+                    use std::os::unix::fs::PermissionsExt;
+                    std::fs::set_permissions(&config_path, std::fs::Permissions::from_mode(0o600))?;
+                }
             }
-        }
             Err(e) if e.kind() == ErrorKind::AlreadyExists => {
                 // File already exists – still re-apply permissions in case
                 // they were tampered with (Unix only).

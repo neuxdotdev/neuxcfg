@@ -12,78 +12,99 @@
 //! 3. Confirm that initialisation is safe to call multiple times (idempotent)
 //! 4. Handle errors when the system config directory cannot be determined
 //!    (e.g. in a minimal environment)
+//! 5. Demonstrate a custom root with `with_root()` and **leave it on disk**
+//!    so you can inspect the result.
 
 use neuxcfg::Neuxcfg;
 
 fn main() {
-    println!("=== neuxcfg v0.1.0 Demo ===\n");
+    println!("=== neuxcfg v{} Demo ===\n", env!("CARGO_PKG_VERSION"));
 
-    // Create a Neuxcfg instance pointing to the default system config directory.
+    // ── Default config directory (real location) ──────────────────────
     match Neuxcfg::new() {
         Ok(cfg) => {
-            println!("Configuration root will be stored at: {:?}\n", cfg.root());
+            println!(" Default config root: {:?}\n", cfg.root());
 
-            // Perform initialisation: create directories and the default file.
+            // Initialise (create directories & default file if missing)
             match cfg.init() {
-                Ok(()) => println!("Initialisation succeeded!\n"),
+                Ok(()) => println!(" Initialisation successful!\n"),
                 Err(e) => {
-                    eprintln!("Initialisation failed: {e}");
+                    eprintln!(" Initialisation failed: {e}");
                     std::process::exit(1);
                 }
             }
 
-            // Display status of the root directory and the main config file.
+            // Inspect root directory
             let root = cfg.root();
             println!("Root directory:");
             println!("   exists : {}", root.exists());
             println!("   is_dir : {}", root.is_dir());
             println!("   path   : {:?}", root);
 
+            // Inspect config.cfg
             let config_file = root.join("config.cfg");
             println!("\nMain config file:");
             println!("   exists : {}", config_file.exists());
             println!("   is_file: {}", config_file.is_file());
             println!("   path   : {:?}", config_file);
 
-            // Read the content of the configuration file (expected to be empty).
-            if let Ok(contents) = std::fs::read_to_string(&config_file) {
-                let empty_note = if contents.is_empty() { " (empty)" } else { "" };
-                println!("   content: \"{}\"{}", contents, empty_note);
+            // Read and display content
+            match std::fs::read_to_string(&config_file) {
+                Ok(contents) => {
+                    let shown = if contents.is_empty() {
+                        "(empty)"
+                    } else {
+                        &contents
+                    };
+                    println!("   content: \"{}\"", shown.trim_end());
+                }
+                Err(e) => eprintln!("   Could not read file: {e}"),
             }
 
-            // Demonstrate idempotence: calling init a second time must succeed.
-            println!("\nCalling init() a second time (idempotent)...");
+            // Idempotence demonstration
+            println!("\n Calling init() a second time (idempotent test)...");
             if let Err(e) = cfg.init() {
-                eprintln!("   Unexpected error: {e}");
+                eprintln!("    Unexpected error: {e}");
             } else {
-                println!("   No error, structure remains safe.");
+                println!("    No error, structure remains safe.");
             }
-
-            // Demonstrate with_root with a custom (temporary) directory.
-            println!("\nDemonstrating with_root() using a temporary directory:");
-            let custom_root = std::env::temp_dir().join("neuxcfg_demo_custom");
-            let custom_cfg = Neuxcfg::with_root(custom_root.clone());
-            if let Err(e) = custom_cfg.init() {
-                eprintln!("   Failed to initialise custom root: {e}");
-            } else {
-                println!("   Custom root: {:?}", custom_cfg.root());
-                println!(
-                    "   config.cfg exists: {}",
-                    custom_cfg.root().join("config.cfg").exists()
-                );
-                // Clean up the demo directory.
-                let _ = std::fs::remove_dir_all(&custom_root);
-                println!("   Temporary directory removed.");
-            }
-
-            println!("\nDemo finished.");
         }
         Err(e) => {
-            eprintln!("Could not create Neuxcfg: {e}");
+            eprintln!(" Could not create Neuxcfg: {e}");
             eprintln!(
-                "Make sure your system supports `dirs::config_dir()` (e.g. $HOME or %APPDATA% is set)."
+                "Make sure your system supports `dirs::config_dir()` \
+                 (e.g. $HOME or %APPDATA% is set)."
             );
             std::process::exit(2);
         }
     }
+
+    // ── Custom root (temporary) ───────────────────────────────────────
+    println!("\n Demonstrating with_root() using a temporary directory:");
+    let custom_root = std::env::temp_dir().join("neuxcfg_demo_custom");
+    let custom_cfg = Neuxcfg::with_root(custom_root.clone());
+    match custom_cfg.init() {
+        Ok(()) => {
+            println!("    Custom root: {:?}", custom_cfg.root());
+            let cfg_file = custom_cfg.root().join("config.cfg");
+            println!("   config.cfg exists: {}", cfg_file.exists());
+            if let Ok(contents) = std::fs::read_to_string(&cfg_file) {
+                let shown = if contents.is_empty() {
+                    "(empty)"
+                } else {
+                    &contents
+                };
+                println!("   content: \"{}\"", shown.trim_end());
+            }
+            //  Do NOT delete the directory – keep it for manual inspection.
+            println!(
+                "\n    Temporary directory kept for inspection: {:?}",
+                custom_root
+            );
+            println!("   You can delete it manually when done.");
+        }
+        Err(e) => eprintln!("    Failed to initialise custom root: {e}"),
+    }
+
+    println!("\n Demo finished.");
 }
