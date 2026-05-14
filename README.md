@@ -35,7 +35,6 @@ Add to your `Cargo.toml`:
 ```bash
 cargo add neuxcfg
 ```
-````
 
 Minimum Supported Rust Version: **1.60.0**
 

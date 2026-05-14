@@ -1,6 +1,6 @@
 [package]
 name = "neuxcfg"
-version = "0.2.1"
+version = "0.2.2"
 edition = "2024"
 description = "library for managing an application’s configuration directory."
 authors = ["neuxdotdev <neuxdev1@gmail.com>"]
