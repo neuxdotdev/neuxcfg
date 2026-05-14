@@ -61,9 +61,8 @@
 //!
 //! Add `neuxcfg` to your `Cargo.toml`:
 //!
-//! ```toml
-//! [dependencies]
-//! neuxcfg = "0.1.0"   # hypothetical version
+//! ```bash
+//! cargo add neuxcfg
 //! ```
 //!
 //! Then, in your application:
