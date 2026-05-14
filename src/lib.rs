@@ -1,5 +1,6 @@
 mod error;
 pub use error::NeuxcfgError;
+use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 pub struct Neuxcfg {
     root: PathBuf,
@@ -15,22 +16,33 @@ impl Neuxcfg {
         Self { root }
     }
     pub fn init(&self) -> Result<(), NeuxcfgError> {
-        if !self.root.exists() {
-            std::fs::create_dir_all(&self.root)?;
-            #[cfg(unix)]
-            {
-                use std::os::unix::fs::PermissionsExt;
-                std::fs::set_permissions(&self.root, std::fs::Permissions::from_mode(0o700))?;
-            }
+        std::fs::create_dir_all(&self.root)?;
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(&self.root, std::fs::Permissions::from_mode(0o700))?;
         }
-        let config_file = self.root.join("config.cfg");
-        if !config_file.exists() {
-            std::fs::write(&config_file, "")?;
-            #[cfg(unix)]
-            {
-                use std::os::unix::fs::PermissionsExt;
-                std::fs::set_permissions(&config_file, std::fs::Permissions::from_mode(0o600))?;
+        let config_path = self.root.join("config.cfg");
+        match std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)  
+            .open(&config_path)
+        {
+            Ok(_file) => {
+                #[cfg(unix)]
+                {
+                    use std::os::unix::fs::PermissionsExt;
+                    std::fs::set_permissions(&config_path, std::fs::Permissions::from_mode(0o600))?;
+                }
             }
+            Err(e) if e.kind() == ErrorKind::AlreadyExists => {
+                #[cfg(unix)]
+                {
+                    use std::os::unix::fs::PermissionsExt;
+                    std::fs::set_permissions(&config_path, std::fs::Permissions::from_mode(0o600))?;
+                }
+            }
+            Err(e) => return Err(e.into()),
         }
         Ok(())
     }
