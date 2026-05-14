@@ -1,6 +1,15 @@
 # neuxcfg
 
-A tiny, security-conscious library for managing an application's configuration directory.
+[![Crates.io](https://img.shields.io/crates/v/neuxcfg?style=for-the-badge&logo=rust)](https://crates.io/crates/neuxcfg)
+[![Documentation](https://img.shields.io/docsrs/neuxcfg?style=for-the-badge&logo=docsdotrs)](https://docs.rs/neuxcfg)
+[![License](https://img.shields.io/crates/l/neuxcfg?style=for-the-badge)](LICENSE)
+[![Minimum rustc version](https://img.shields.io/badge/rustc-1.60%2B-informational?style=for-the-badge&logo=rust)](https://rust-lang.org)
+[![CI](https://img.shields.io/github/actions/workflow/status/neuxdotdev/neuxcfg/ci.yml?style=for-the-badge&logo=githubactions)](https://github.com/neuxdotdev/neuxcfg/actions)
+[![Codecov](https://img.shields.io/codecov/c/github/neuxdotdev/neuxcfg?style=for-the-badge&logo=codecov)](https://codecov.io/gh/neuxdotdev/neuxcfg)
+[![Dependencies](https://img.shields.io/librariesio/release/cargo/neuxcfg?style=for-the-badge&logo=librariesdotio)](https://libraries.io/cargo/neuxcfg)
+[![LoC](https://tokei.rs/b1/github/neuxdotdev/neuxcfg?category=code&style=flat)](https://github.com/neuxdotdev/neuxcfg)
+
+> A tiny, security-conscious library for managing an application's configuration directory.
 
 `neuxcfg` creates a dedicated configuration folder inside the user's system-standard configuration directory and enforces strict file permissions on Unix systems. It is designed for applications that store sensitive data such as API keys, tokens, or database credentials.
 
@@ -17,9 +26,8 @@ A tiny, security-conscious library for managing an application's configuration d
 
 Add `neuxcfg` to your `Cargo.toml`:
 
-```toml
-[dependencies]
-neuxcfg = "0.1.0"
+```bash
+cargo add neuxcfg
 ```
 
 ## Quick Start
