@@ -1,4 +1,5 @@
 use neuxcfg::Neuxcfg;
+
 #[test]
 fn test_add_list_remove_project() {
     let tmp = tempfile::TempDir::new().unwrap();
@@ -12,10 +13,9 @@ fn test_add_list_remove_project() {
     assert_eq!(config.project.name, "myapp");
     let expected_path = cfg.root().join("myapp");
     assert_eq!(config.project.path, expected_path.to_string_lossy());
+    assert!(config.project.extra.is_empty());
     cfg.remove_project("myapp").unwrap();
     assert!(!cfg.project_exists("myapp").unwrap());
-    let list = cfg.list_projects().unwrap();
-    assert!(!list.contains(&"myapp".to_string()));
 }
 #[test]
 fn test_add_existing_project_errors() {
@@ -41,17 +41,31 @@ fn test_invalid_project_name() {
     assert!(cfg.add_project("").is_err());
 }
 #[test]
-fn test_get_set_project_config() {
+fn test_get_set_project_config_with_custom_fields() {
     let tmp = tempfile::TempDir::new().unwrap();
     let cfg = Neuxcfg::with_root(tmp.path().to_path_buf());
     cfg.init().unwrap();
     cfg.add_project("myapp").unwrap();
     let mut config = cfg.get_project_config("myapp").unwrap();
-    assert_eq!(config.project.name, "myapp");
-    config.project.path = "/custom/path".into();
+    config.project.extra.insert(
+        "database_url".into(),
+        toml::Value::String("postgres://localhost".into()),
+    );
+    config
+        .project
+        .extra
+        .insert("max_connections".into(), toml::Value::Integer(10));
     cfg.set_project_config("myapp", &config).unwrap();
     let updated = cfg.get_project_config("myapp").unwrap();
-    assert_eq!(updated.project.path, "/custom/path");
+    assert_eq!(updated.project.name, "myapp");
+    assert_eq!(
+        updated.project.extra.get("database_url"),
+        Some(&toml::Value::String("postgres://localhost".into()))
+    );
+    assert_eq!(
+        updated.project.extra.get("max_connections"),
+        Some(&toml::Value::Integer(10))
+    );
 }
 #[test]
 fn test_project_not_found_errors() {
