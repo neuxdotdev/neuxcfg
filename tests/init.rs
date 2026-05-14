@@ -19,7 +19,7 @@ fn test_init_idempotent() {
     let cfg = Neuxcfg::with_root(tmp.path().join("neuxcfg"));
     cfg.init().unwrap();
     cfg.init().unwrap();
-    cfg.init().unwrap(); 
+    cfg.init().unwrap();
 }
 #[test]
 fn test_with_root_exact_path() {
@@ -61,7 +61,10 @@ fn test_unix_permissions() {
     cfg.init().unwrap();
     let dir_perm = fs::metadata(&root).unwrap().permissions().mode();
     assert_eq!(dir_perm & 0o777, 0o700, "Folder root harus 0700");
-    let file_perm = fs::metadata(root.join("config.cfg")).unwrap().permissions().mode();
+    let file_perm = fs::metadata(root.join("config.cfg"))
+        .unwrap()
+        .permissions()
+        .mode();
     assert_eq!(file_perm & 0o777, 0o600, "File config harus 0600");
 }
 #[test]
@@ -77,6 +80,9 @@ fn test_init_fixes_permissions() {
     cfg.init().unwrap();
     let dir_perm = fs::metadata(&root).unwrap().permissions().mode();
     assert_eq!(dir_perm & 0o777, 0o700, "Folder root harus kembali 0700");
-    let file_perm = fs::metadata(root.join("config.cfg")).unwrap().permissions().mode();
+    let file_perm = fs::metadata(root.join("config.cfg"))
+        .unwrap()
+        .permissions()
+        .mode();
     assert_eq!(file_perm & 0o777, 0o600, "File config harus kembali 0600");
 }
