@@ -10,7 +10,7 @@ fn test_init_creates_structure() {
     let config_file = root.join("config.cfg");
     assert!(config_file.is_file());
     let content = fs::read_to_string(&config_file).unwrap();
-    assert!(content.is_empty());
+    assert_eq!(content.trim(), format!("version = \"{}\"", env!("CARGO_PKG_VERSION")));
     assert_eq!(cfg.root(), &*root);
 }
 #[test]
