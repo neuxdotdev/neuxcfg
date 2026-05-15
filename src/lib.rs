@@ -30,13 +30,13 @@
 //! - **Deep merge** – update configurations partially without full replacement.
 //! - **Unix permission hardening** – directories `0700`, files `0600` on Unix.
 
-mod atomic;
-mod backup;
-mod error;
-mod lock;
-mod merge;
+pub mod atomic;
+pub mod backup;
+pub mod error;
+pub mod lock;
+pub mod merge;
 pub mod types;
-mod validate;
+pub mod validate;
 
 use atomic::atomic_write;
 use backup::backup_project_config;
@@ -489,7 +489,7 @@ impl Neuxcfg {
     ///     debug = true
     ///     limits = { max_connections = 100 }
     /// };
-    /// cfg.update_project_config("server", delta)?;
+    /// cfg.update_project_config("server", toml::Value::Table(delta))?;
     /// # Ok::<(), neuxcfg::NeuxcfgError>(())
     /// ```
     pub fn update_project_config(
