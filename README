@@ -1,0 +1,127 @@
+# neuxcfg
+
+A production-ready Rust library for secure per-project configuration management.
+
+## Quick Start
+
+- Add dependency: `neuxcfg = "0.3.0"` (see Cargo.toml)
+- Initialize global config store: See `src/lib.rs` – `Neuxcfg::init()`
+- Add a project: `cfg.add_project("my_app")?` – src/lib.rs:add_project
+- Read config: `cfg.get_project_config("my_app")?` – src/lib.rs:get_project_config
+- Build the project: `cargo build` (standard Rust workflow)
+- Join the community: [TODO: mailing list / IRC not specified in source]
+
+## Essential Documentation
+
+All users should be familiar with:
+
+- Core API and usage: `src/lib.rs` (Neuxcfg struct documentation)
+- Configuration structure: `src/types.rs` (GlobalConfig, ProjectConfig)
+- Error handling: `src/error.rs` (NeuxcfgError enum)
+- Validation rules: `src/validate.rs` (extra field restrictions)
+- License: See COPYING or LICENSE (MIT – default from GlobalConfig)
+
+Documentation can be built with `cargo doc --open` or viewed online at:
+[TODO: documentation URL not specified; see Cargo.toml homepage]
+
+# Who Are You?
+
+Find your role below:
+
+- Library User (Developer) – Integrate neuxcfg into your Rust application to manage project‑specific configuration files.
+- Contributor – Help improve neuxcfg by fixing bugs, adding features, or refining documentation.
+- Maintainer – Review pull requests, manage releases, and guide the project roadmap.
+
+# For Specific Users
+
+## Library User
+
+Welcome! neuxcfg provides atomic writes, file locking, backups, and validation. Start with the main API.
+
+- Initialisation and basic operations: `src/lib.rs` – Neuxcfg::new, init, add_project
+- Reading/writing project configs: `src/lib.rs` – get_project_config, set_project_config, update_project_config
+- Backup and restore: `src/lib.rs` – backup_project, restore_project
+- Configuration data structures: `src/types.rs` – ProjectConfig, ProjectInfo
+- Error types and handling: `src/error.rs` – NeuxcfgError variants
+- Validation of extra fields: `src/validate.rs` – validate_extra rules
+
+## Contributor
+
+Thank you for your interest! Please review the contribution guidelines below. The codebase is organised into focused modules.
+
+- Module overview: `src/lib.rs` – exports and public interface
+- Atomic write implementation: `src/atomic.rs` – atomic_write
+- File locking: `src/lock.rs` – FileLock (shared/exclusive)
+- Deep merge logic: `src/merge.rs` – deep_merge for partial updates
+- Backup functionality: `src/backup.rs` – backup_project_config, restore
+- Testing: Run `cargo test` (doc tests are present in lib.rs)
+
+## Maintainer
+
+You are responsible for the project’s health. Key areas to monitor:
+
+- Security: Path traversal protection in `src/lib.rs` – secure_project_dir
+- Permission hardening: Unix 0700/0600 settings across modules
+- Dependency updates: Cargo.toml (not provided, but check dirs, toml, serde, uuid, fs2, thiserror)
+- Release process: Update version in `src/types.rs` – GlobalConfig::from_cargo defaults
+- Documentation: Ensure `src/lib.rs` doc comments stay in sync with behaviour
+
+# Communication and Support
+
+- Mailing Lists: [TODO: not specified in source]
+- IRC or Chat: [TODO: not specified]
+- Issue Tracker: [https://github.com/neuxdotdev/neuxcfg/issues](https://github.com/neuxdotdev/neuxcfg/issues) (inferred from repository URL)
+- MAINTAINERS or similar file: None provided; see repository for contact information
+- Email Guidelines: `Documentation/process/email.rst` – no such file; suggest creating Documentation/
+
+# Build and Testing
+
+```bash
+# Build the library (standard Rust)
+cargo build --release
+```
+
+```bash
+# Run tests (includes doc tests from lib.rs)
+cargo test
+```
+
+Note: No explicit unit/integration test files were found in the source. Consider adding tests for `atomic`, `backup`, `lock`, `merge`, and `validate`.
+
+# Project Structure
+
+neuxcfg/
+src/
+lib.rs # Public API and Neuxcfg main struct
+error.rs # NeuxcfgError enum
+types.rs # GlobalConfig, ProjectConfig, ProjectInfo
+atomic.rs # Atomic file write utility
+backup.rs # Backup and restore functions
+lock.rs # File locking (FileLock)
+merge.rs # Deep merge for TOML values
+validate.rs # Extra field validator
+Cargo.toml # (not provided – assumed)
+README.md # This file
+
+# Contributing
+
+Standard Rust workflow (adapted from project conventions):
+
+1. Review guidelines: `Documentation/process/contributing.rst` – not present; follow typical GitHub flow.
+2. Fork the repository.
+3. Create a feature branch: `git checkout -b feat/your-feature`
+4. Commit with conventional format: `feat: add new capability`
+5. Ensure `cargo test` and `cargo fmt` pass.
+6. Push and open a Pull Request against the main branch.
+
+For major changes, open an issue first to discuss.
+
+# License
+
+MIT – See LICENSE file (default from `GlobalConfig::from_cargo`). [TODO: verify that a LICENSE file exists in the repository.]
+
+---
+
+Repository: [https://github.com/neuxdotdev/neuxcfg](https://github.com/neuxdotdev/neuxcfg)
+Issues: [https://github.com/neuxdotdev/neuxcfg/issues](https://github.com/neuxdotdev/neuxcfg/issues)
+Generated from source: commit hash not available (timestamp: 2026-05-15)
