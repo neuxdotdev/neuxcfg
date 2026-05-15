@@ -13,21 +13,26 @@ use toml::Value;
 /// # Examples
 ///
 /// ```rust
-/// use toml::toml;
+/// use toml::{toml, from_str};
 /// use neuxcfg::merge::deep_merge;
 ///
-/// let mut base = toml! {
-///     [project]
-///     name = "old"
-///     [limits]
-///     max = 10
-/// };
-/// let delta = toml! {
-///     [project]
-///     name = "new"
-///     [limits]
-///     min = 1
-/// };
+/// let mut base = from_str(
+///     r#"
+/// [project]
+/// name = "old"
+/// [limits]
+/// max = 10
+/// "#,
+/// ).unwrap();
+/// let delta = from_str(
+///     r#"
+/// [project]
+/// name = "new"
+/// [limits]
+/// min = 1
+/// "#,
+/// ).unwrap();
+/// deep_merge(&mut base, &delta);
 /// deep_merge(&mut base, &delta);
 /// let expected = toml! {
 ///     [project]
@@ -36,7 +41,7 @@ use toml::Value;
 ///     max = 10
 ///     min = 1
 /// };
-/// assert_eq!(base, expected);
+/// assert_eq!(base, toml::Value::Table(expected));
 /// ```
 pub fn deep_merge(base: &mut Value, delta: &Value) {
     match (base, delta) {
